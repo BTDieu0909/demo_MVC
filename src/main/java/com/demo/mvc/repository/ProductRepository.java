@@ -1,0 +1,26 @@
+package com.demo.mvc.repository;
+
+import com.demo.mvc.entity.Product;
+import java.util.List;
+
+public interface ProductRepository extends JpaRepository<Product, Integer> {
+
+    @Query(value = """
+        SELECT 
+            p.product_id,
+            COALESCE(pt.product_name, 'Untranslated'),
+            COALESCE(pct.category_name, 'Uncategorized'),
+            p.price,
+            p.weight
+        FROM products p
+        LEFT JOIN product_translation pt
+            ON p.product_id = pt.product_id AND pt.language_id = :lang
+        LEFT JOIN product_category pc
+            ON p.product_category_id = pc.product_category_id
+        LEFT JOIN product_category_translation pct
+            ON pc.product_category_id = pct.product_category_id AND pct.language_id = :lang
+        ORDER BY p.product_id
+        """, nativeQuery = true)
+
+    List<Object[]> findProductsByLanguage(@Param("lang") String lang);
+}
